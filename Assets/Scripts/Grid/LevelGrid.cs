@@ -31,7 +31,7 @@ public class LevelGrid : MonoBehaviour
             {
                 GameObject tile = Instantiate(tilePrefab, new Vector3(i, j) * tileSize + offset, Quaternion.identity, transform);
                 tile.transform.localScale = tile.transform.localScale * tileSize;
-                tile.GetComponent<TileDataHolder>().SetTileData(tileDataArray[Random.Range(0, tileDataArray.Length)]);
+                tile.GetComponent<TileDataHolder>().SetTileData(tileDataArray[Random.Range(0, tileDataArray.Length)], i, j);
                 levelGrid[i, j] = tile;
             }
         }
@@ -52,7 +52,7 @@ public class LevelGrid : MonoBehaviour
     {
         if (x >= 0 && y >= 0 && x < width && y < height)
         {
-            levelGrid[x,y].GetComponent<TileDataHolder>().SetTileData(_tileData);
+            levelGrid[x,y].GetComponent<TileDataHolder>().SetTileData(_tileData, x, y);
         }
     }
 
