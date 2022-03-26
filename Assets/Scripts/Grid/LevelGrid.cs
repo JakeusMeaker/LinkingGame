@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class LevelGrid : MonoBehaviour
 {
@@ -31,8 +33,22 @@ public class LevelGrid : MonoBehaviour
             {
                 GameObject tile = Instantiate(tilePrefab, new Vector3(i, j) * tileSize + offset, Quaternion.identity, transform);
                 tile.transform.localScale = tile.transform.localScale * tileSize;
-                tile.GetComponent<TileDataHolder>().SetTileData(tileDataArray[Random.Range(0, tileDataArray.Length)], i, j);
+                TileDataHolder spawnedTile = tile.GetComponent<TileDataHolder>();
+                spawnedTile.SetTileData(this, tileDataArray[Random.Range(0, tileDataArray.Length)], i, j);
+
                 levelGrid[i, j] = tile;
+            }
+        }
+    }
+
+    private void Update()
+    {
+        for (int x = 0; x < levelGrid.GetLength(0) - 1; x++)
+        {
+            if (levelGrid[x, levelGrid.GetLength(1) - 1].GetComponent<TileDataHolder>().isEmpty)
+            {
+                levelGrid[x, levelGrid.GetLength(1) - 1].GetComponent<TileDataHolder>().
+                                                            SetTileData(this, tileDataArray[Random.Range(0, tileDataArray.Length)], x, levelGrid.GetLength(1));
             }
         }
     }
@@ -52,14 +68,14 @@ public class LevelGrid : MonoBehaviour
     {
         if (x >= 0 && y >= 0 && x < width && y < height)
         {
-            levelGrid[x,y].GetComponent<TileDataHolder>().SetTileData(_tileData, x, y);
+            levelGrid[x, y].GetComponent<TileDataHolder>().SetTileData(this, _tileData, x, y);
         }
     }
 
     public void SetGridTile(Vector3 pos, TileDataSO _tileData)
     {
         int x, y;
-        GetGridCoords(pos, out x,out y);
+        GetGridCoords(pos, out x, out y);
         SetGridTile(x, y, _tileData);
     }
 
@@ -94,4 +110,5 @@ public class LevelGrid : MonoBehaviour
         GetGridCoords(pos, out x, out y);
         return GetTileDataHolder(x, y);
     }
+
 }

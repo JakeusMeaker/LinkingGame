@@ -9,81 +9,150 @@ public class MatchingControls : MonoBehaviour
     Stack<TileDataHolder> matchedTiles = new Stack<TileDataHolder>();
     TileDataHolder previousTile;
 
-    int matchCount = 0;
-
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetMouseButton(0))
+        {
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            TileDataHolder tile = levelGrid.GetTileDataHolder(mousePos);
+
+            if (previousTile == null)
+            {
+                AddToMatchedTiles(tile);
+            }
+            else 
+            {
+                if (!tile.GetTileData()) return;
+
+                if (tile == previousTile)
+                {
+                    RemoveFromMatchedTiles(matchedTiles.Peek());
+                }
+                
+                if (TileLinkChecker(previousTile.GetTileData(), tile.GetTileData()))
+                {
+                    AddToMatchedTiles(tile);
+                    return;
+                }
+                else
+                {
+                    return;
+                }
+            }            
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (matchedTiles.Count >= 3)
+            {
+                for (int i = matchedTiles.Count; i > 0; i--)
+                {
+                    matchedTiles.Peek().DisableAllConnections();
+                    matchedTiles.Peek().DestroyTile();
+                    matchedTiles.Pop();
+                }
+                previousTile = null;
+                matchedTiles.Clear();
+                return;
+            }
+            else
+            {
+                foreach (TileDataHolder tileHolder in matchedTiles)
+                {
+                    tileHolder.DisableAllConnections();
+                }
+
+                previousTile = null;
+                matchedTiles.Clear();
+            }
+        }
+
+
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
+            Vector3 pos = new Vector3(touch.position.x, touch.position.y, Camera.main.transform.position.z);
+            Vector3 touchPos = Camera.main.ScreenToWorldPoint(pos);
 
-            if (touch.phase == TouchPhase.Moved)
+            TileDataHolder tile = levelGrid.GetTileDataHolder(touchPos);
+
+            if (tile == null)
             {
-                Vector3 touchPos = Camera.main.ScreenToWorldPoint(touch.position);
-                TileDataHolder tile = levelGrid.GetTileDataHolder(touchPos);
-
-                if (previousTile != null)
-                {
-                    if (!TileLinkChecker(previousTile.GetTileData(), tile.GetTileData()) && tile.GetTileData() != null)
-                    {
-                        return;
-                    }
-
-                    if (tile == previousTile && tile != matchedTiles.Peek())
-                    {
-                        previousTile.DisableConnection(DetermineConnection(previousTile, tile));
-                        RemoveFromMatchedTiles();
-                    }
-                }
-
-                if (previousTile)
-                {
-                    previousTile.EnableConnection(DetermineConnection(previousTile, tile));
-                }
-
-                AddToMatchedTiles(tile);
                 return;
             }
 
-            if (touch.phase == TouchPhase.Ended)
+            if (tile.isEmpty)
             {
-                if (matchCount >= 3)
+                return;
+            }
+
+            if (touch.phase == TouchPhase.Began || touch.phase == TouchPhase.Moved && previousTile == null)
+            {
+                AddToMatchedTiles(tile);
+            }
+
+            if (previousTile == null)
+            {
+                return;
+            }
+
+            if (touch.phase == TouchPhase.Moved && tile != previousTile)
+            {
+                if (TileLinkChecker(previousTile.GetTileData(), tile.GetTileData()))
                 {
-                    foreach (TileDataHolder tile in matchedTiles)
+                    AddToMatchedTiles(tile);
+                }
+            }
+            else if (touch.phase == TouchPhase.Moved && matchedTiles.Contains(tile))
+            {
+                while (matchedTiles.Peek() != tile)
+                {
+                    RemoveFromMatchedTiles(matchedTiles.Peek());
+                }
+            }
+            else if (touch.phase == TouchPhase.Ended)
+            {
+                if (matchedTiles.Count >= 3)
+                {
+                    for (int i = matchedTiles.Count; i > 0; i--)
                     {
-                        tile.DisableAllConnections();
-                        ScoreManager.AddToScore(tile.GetTileData().scoreValue);
-                        tile.DestroyTile();
+                        matchedTiles.Peek().DisableAllConnections();
+                        matchedTiles.Peek().DestroyTile();
+                        matchedTiles.Pop();
                     }
-                    matchCount = 0;
                     previousTile = null;
+                    matchedTiles.Clear();
                     return;
                 }
-
-                matchCount = 0;
-                previousTile = null;
-
-                foreach (TileDataHolder tile in matchedTiles)
+                else
                 {
-                    tile.DisableAllConnections();
-                }
+                    foreach (TileDataHolder tileHolder in matchedTiles)
+                    {
+                        tileHolder.DisableAllConnections();
+                    }
 
-                matchedTiles.Clear();
+                    previousTile = null;
+                    matchedTiles.Clear();
+                }
             }
         }
     }
 
-    void RemoveFromMatchedTiles()
+    void RemoveFromMatchedTiles(TileDataHolder tile)
     {
-        matchCount = matchCount > 0 ? matchCount-- : matchCount = 0;
-
+        tile.DisableAllConnections();
         matchedTiles.Pop();
     }
 
     void AddToMatchedTiles(TileDataHolder tile)
     {
-        matchCount++;
+        if (previousTile != null)
+        {
+            previousTile.EnableConnection(previousTile.DetermineConnection(tile));
+        }
+
         previousTile = tile;
 
         matchedTiles.Push(tile);
@@ -92,50 +161,5 @@ public class MatchingControls : MonoBehaviour
     bool TileLinkChecker(TileDataSO startTile, TileDataSO endTile)
     {
         return startTile.type == endTile.type;
-    }
-
-    ConnectionLines DetermineConnection(TileDataHolder firstTile, TileDataHolder secondTile)
-    {
-        if (secondTile.xPos == firstTile.xPos && secondTile.yPos > firstTile.yPos)
-        {
-            return ConnectionLines.Up;
-        }
-
-        if (secondTile.xPos > firstTile.xPos && secondTile.yPos > firstTile.yPos)
-        {
-            return ConnectionLines.UpRight;
-        }
-
-        if (secondTile.xPos > firstTile.xPos && secondTile.yPos == firstTile.yPos)
-        {
-            return ConnectionLines.Right;
-        }
-
-        if (secondTile.xPos > firstTile.xPos && secondTile.yPos < firstTile.yPos)
-        {
-            return ConnectionLines.DownRight;
-        }
-
-        if (secondTile.xPos == firstTile.xPos && secondTile.yPos < firstTile.yPos)
-        {
-            return ConnectionLines.Down;
-        }
-
-        if (secondTile.xPos < firstTile.xPos && secondTile.yPos < firstTile.yPos)
-        {
-            return ConnectionLines.DownLeft;
-        }
-
-        if (secondTile.xPos < firstTile.xPos && secondTile.yPos == firstTile.yPos)
-        {
-            return ConnectionLines.Left;
-        }
-
-        if (secondTile.xPos < firstTile.xPos && secondTile.yPos > firstTile.yPos)
-        {
-            return ConnectionLines.UpLeft;
-        }
-
-        return ConnectionLines.NULL;
     }
 }
