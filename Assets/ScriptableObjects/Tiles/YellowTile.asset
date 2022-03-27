@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   sprite: {fileID: 21300000, guid: dc698dddebbe2d340abcfa71255dcd17, type: 3}
-  scoreValue: 10
+  scoreValue: 50

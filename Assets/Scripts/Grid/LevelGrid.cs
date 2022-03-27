@@ -16,10 +16,38 @@ public class LevelGrid : MonoBehaviour
     [SerializeField] private GameObject tilePrefab;
     Vector3 offset;
 
+    [SerializeField] private LevelDataSO[] levels;
+
     private void Start()
     {
         offset = transform.position;
-        GenerateRandomGrid();
+        if (levels.Length != 0)
+        {
+            LoadLevelGrid(0);
+        }
+        else
+        {
+            GenerateRandomGrid();
+        }
+    }
+
+    private void LoadLevelGrid(int level)
+    {
+        for (int i = 0; i < levels[level].levelGrid.GetLength(0); i++)
+        {
+            for (int j = 0; j < levels[level].levelGrid.GetLength(1); j++)
+            {
+                GameObject tile = Instantiate(tilePrefab, new Vector3(i, j) * levels[level].tileSize + levels[level].offset, Quaternion.identity, transform);
+                tile.transform.localScale = tile.transform.localScale * levels[level].tileSize;
+                TileDataHolder spawnedTile = tile.GetComponent<TileDataHolder>();
+                spawnedTile.SetTileData(this, levels[level].levelGrid[i, j], i, j);
+                spawnedTile.OnTileDestroyed += TileDataHolder_OnTileDestroyed;
+                levelGrid[i, j] = tile;
+            }
+        }
+
+        ScoreManager.Instance.SetScoreTarget(levels[0].levelTargetScore);
+
     }
 
     // Start is called before the first frame update
@@ -35,20 +63,30 @@ public class LevelGrid : MonoBehaviour
                 tile.transform.localScale = tile.transform.localScale * tileSize;
                 TileDataHolder spawnedTile = tile.GetComponent<TileDataHolder>();
                 spawnedTile.SetTileData(this, tileDataArray[Random.Range(0, tileDataArray.Length)], i, j);
-
+                spawnedTile.OnTileDestroyed += TileDataHolder_OnTileDestroyed;
                 levelGrid[i, j] = tile;
             }
         }
+
+        ScoreManager.Instance.SetScoreTarget(5000);
     }
 
-    private void Update()
+    private void TileDataHolder_OnTileDestroyed(object sender, TileDataHolder.OnTileDestroyedEventArgs e)
     {
-        for (int x = 0; x < levelGrid.GetLength(0) - 1; x++)
+        for (int x = 0; x < levelGrid.GetLength(0); x++)
         {
-            if (levelGrid[x, levelGrid.GetLength(1) - 1].GetComponent<TileDataHolder>().isEmpty)
+            for (int y = 0; y < levelGrid.GetLength(1); y++)
             {
-                levelGrid[x, levelGrid.GetLength(1) - 1].GetComponent<TileDataHolder>().
-                                                            SetTileData(this, tileDataArray[Random.Range(0, tileDataArray.Length)], x, levelGrid.GetLength(1));
+                if (y == height -1)
+                {
+                    if (levelGrid[x, y].GetComponent<TileDataHolder>().isEmpty)
+                    {
+                        levelGrid[x, y].GetComponent<TileDataHolder>().
+                                                                    SetTileData(this, tileDataArray[Random.Range(0, tileDataArray.Length)], x, y);
+                    }
+                }
+
+                levelGrid[x, y].GetComponent<TileDataHolder>().CheckTileBelow();
             }
         }
     }

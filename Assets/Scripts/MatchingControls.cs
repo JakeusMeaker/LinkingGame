@@ -18,13 +18,15 @@ public class MatchingControls : MonoBehaviour
 
             TileDataHolder tile = levelGrid.GetTileDataHolder(mousePos);
 
-            if (previousTile == null)
+            if (previousTile == null && tile != null)
             {
                 AddToMatchedTiles(tile);
             }
             else 
             {
-                if (!tile.GetTileData()) return;
+                if (tile == null) return;
+
+                if (tile.GetTileData() == null) return;
 
                 if (tile == previousTile)
                 {
@@ -45,10 +47,22 @@ public class MatchingControls : MonoBehaviour
 
         if (Input.GetMouseButtonUp(0))
         {
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+            TileDataHolder tile = levelGrid.GetTileDataHolder(mousePos);
+
+            if (tile == null)
+            {
+                return;
+            }
+
             if (matchedTiles.Count >= 3)
             {
                 for (int i = matchedTiles.Count; i > 0; i--)
                 {
+                    TileDataSO scoreData = matchedTiles.Peek().GetTileData();
+                    if (scoreData == null) return;
+                    ScoreManager.Instance.AddToScore(scoreData.scoreValue);
                     matchedTiles.Peek().DisableAllConnections();
                     matchedTiles.Peek().DestroyTile();
                     matchedTiles.Pop();
@@ -118,6 +132,8 @@ public class MatchingControls : MonoBehaviour
                 {
                     for (int i = matchedTiles.Count; i > 0; i--)
                     {
+                        TileDataSO scoreData = matchedTiles.Peek().GetTileData();
+                        ScoreManager.Instance.AddToScore(scoreData.scoreValue);
                         matchedTiles.Peek().DisableAllConnections();
                         matchedTiles.Peek().DestroyTile();
                         matchedTiles.Pop();
@@ -160,6 +176,11 @@ public class MatchingControls : MonoBehaviour
 
     bool TileLinkChecker(TileDataSO startTile, TileDataSO endTile)
     {
+        if (startTile == null || endTile == null)
+        {
+            return false;
+        }
+
         return startTile.type == endTile.type;
     }
 }

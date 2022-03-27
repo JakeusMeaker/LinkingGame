@@ -16,6 +16,13 @@ public enum ConnectionLines
 
 public class TileDataHolder : MonoBehaviour
 {
+    public event EventHandler<OnTileDestroyedEventArgs> OnTileDestroyed;
+
+    public class OnTileDestroyedEventArgs : EventArgs
+    {
+        public TileDataHolder tileDataHolder { get; set; }
+    }
+
     private TileDataSO tileData = null;
     public bool isEmpty { get; private set; }
 
@@ -23,6 +30,11 @@ public class TileDataHolder : MonoBehaviour
     public int yPos { get; private set; }
 
     [SerializeField] private SpriteRenderer tileRenderer;
+    private Vector3 defaultTileRendererScale;
+    [SerializeField] private Vector3 tileExpansionScale;
+    [SerializeField] private float tileExpansionSpeed;
+
+    [SerializeField] private ParticleSystem particals;
 
     private LevelGrid levelGrid;
 
@@ -39,25 +51,46 @@ public class TileDataHolder : MonoBehaviour
     [Tooltip("0 = Up, 1 = Up Right, 2 = Right, 3 = Down Right, 4 = Down, 5 = Down Left, 6 = Left, 7 = Up Left")]
     [SerializeField] private GameObject[] connectionLines;
 
+    private void Start()
+    {
+        defaultTileRendererScale = tileRenderer.transform.localScale;
+    }
+
+    public void CheckTileBelow()
+    {
+        if (yPos == 0) return;
+
+        if (levelGrid.levelGrid[xPos, yPos - 1].GetComponent<TileDataHolder>().isEmpty)
+        {
+            levelGrid.levelGrid[xPos, yPos - 1].GetComponent<TileDataHolder>().SetTileData(tileData);
+            SetTileEmpty();
+            return;
+        }
+    }
+
     public void SetTileData(LevelGrid _levelGrid, TileDataSO _tileData, int x, int y)
     {
-        isEmpty = false;
         xPos = x;
         yPos = y;
 
-        levelGrid = _levelGrid;
+        if (levelGrid == null)
+        {
+            levelGrid = _levelGrid;
+        }
 
         tileData = _tileData;
+        isEmpty = false;
 
         tileRenderer.sprite = tileData.sprite;
     }
 
     public void SetTileData(TileDataSO _tileData)
     {
-        isEmpty = false;
+        tileRenderer.transform.localScale = defaultTileRendererScale;
         tileData = _tileData;
         if (tileData != null)
         {
+            isEmpty = false;
             tileRenderer.sprite = tileData.sprite;
         }
         else
@@ -74,14 +107,20 @@ public class TileDataHolder : MonoBehaviour
     public void DestroyTile()
     {
         //Animate the tile going and add fx
+        while (tileRenderer.transform.localScale.x < tileExpansionScale.x)
+        {
+            tileRenderer.transform.localScale += Vector3.Lerp(tileRenderer.transform.localScale, tileExpansionScale, tileExpansionSpeed * Time.deltaTime);
+        }
+        particals.Emit(20);
         tileRenderer.sprite = null;
         SetTileEmpty();
+        OnTileDestroyed?.Invoke(this, new OnTileDestroyedEventArgs { tileDataHolder = this });
     }
 
     public void SetTileEmpty()
     {
-        SetTileData(null);
         isEmpty = true;
+        SetTileData(null);
     }
 
     public void EnableConnection(ConnectionLines direction)
@@ -147,17 +186,5 @@ public class TileDataHolder : MonoBehaviour
         }
 
         return ConnectionLines.NULL;
-    }
-
-    private void Update()
-    {
-        if (yPos == 0) return;
-
-        if (levelGrid.levelGrid[xPos, yPos - 1].GetComponent<TileDataHolder>().isEmpty)
-        {
-            levelGrid.levelGrid[xPos, yPos - 1].GetComponent<TileDataHolder>().SetTileData(tileData);
-            SetTileEmpty();
-            return;
-        }
     }
 }
