@@ -62,7 +62,7 @@ public class MatchingControls : MonoBehaviour
                 {
                     TileDataSO scoreData = matchedTiles.Peek().GetTileData();
                     if (scoreData == null) return;
-                    ScoreManager.Instance.AddToScore(scoreData.scoreValue);
+                    GameManager.Instance.AddToScore(scoreData.scoreValue);
                     matchedTiles.Peek().DisableAllConnections();
                     matchedTiles.Peek().DestroyTile();
                     matchedTiles.Pop();
@@ -133,7 +133,7 @@ public class MatchingControls : MonoBehaviour
                     for (int i = matchedTiles.Count; i > 0; i--)
                     {
                         TileDataSO scoreData = matchedTiles.Peek().GetTileData();
-                        ScoreManager.Instance.AddToScore(scoreData.scoreValue);
+                        GameManager.Instance.AddToScore(scoreData.scoreValue);
                         matchedTiles.Peek().DisableAllConnections();
                         matchedTiles.Peek().DestroyTile();
                         matchedTiles.Pop();

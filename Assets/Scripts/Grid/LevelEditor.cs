@@ -33,28 +33,34 @@ public class LevelEditor : MonoBehaviour
 
         gridHolder = new GameObject[levelToEdit.width, levelToEdit.height];
         levelToEdit.SetUpGrid();
-        
-        for (int i = 0; i < levelToEdit.levelGrid.GetLength(0); i++)
+
+        for (int i = 0; i < levelToEdit.width; i++)
         {
-            for (int j = 0; j < levelToEdit.levelGrid.GetLength(1); j++)
+            for (int j = 0; j < levelToEdit.height; j++)
             {
                 GameObject tile = Instantiate(tilePrefab, new Vector3(i, j) * levelToEdit.tileSize + levelToEdit.offset, Quaternion.identity, transform);
                 gridHolder[i, j] = tile;
                 tile.transform.localScale = tile.transform.localScale * levelToEdit.tileSize;
-                levelToEdit.levelGrid[i, j] = null;
+                levelToEdit.levelGrid.Add(tile.GetComponent<TileDataHolder>().GetTileData());
             }
         }
     }
 
     public void LoadLevel()
     {
+        int listIndexRef = 0;
+
+        gridHolder = new GameObject[levelToEdit.width, levelToEdit.height];
+
         for (int i = 0; i < levelToEdit.width; i++)
         {
             for (int j = 0; j < levelToEdit.height; j++)
             {
                 GameObject tile = Instantiate(tilePrefab, new Vector3(i, j) * levelToEdit.tileSize + levelToEdit.offset, Quaternion.identity, transform);
+                gridHolder[i, j] = tile;
                 tile.transform.localScale = tile.transform.localScale * levelToEdit.tileSize;
-                tile.GetComponent<TileDataHolder>().SetTileData(levelToEdit.levelGrid[i, j]);
+                SetGridTile(i, j, levelToEdit.levelGrid[listIndexRef]);
+                listIndexRef++;
             }
         }
     }
@@ -69,7 +75,17 @@ public class LevelEditor : MonoBehaviour
     {
         if (x >= 0 && y >= 0 && x < levelToEdit.width && y < levelToEdit.height)
         {
-            levelToEdit.AddToGrid(x, y, _tileData);
+            int listIndexRef = 0;
+
+            for (int i = 0; i < x; i++)
+            {
+                for (int j = 0; j < y; j++)
+                {
+                    listIndexRef++;
+                }
+            }
+
+            levelToEdit.levelGrid[listIndexRef] = _tileData;
             gridHolder[x, y].GetComponent<TileDataHolder>().SetTileData(_tileData);
         }
     }
@@ -102,6 +118,11 @@ public class LevelEditor : MonoBehaviour
             SetGridTile(x, y, selectedTile);
         }
     }
+
+    public void SaveLevel()
+    {
+        AssetDatabase.SaveAssets();
+    }
 }
 
 [CustomEditor(typeof(LevelEditor))]
@@ -127,5 +148,12 @@ public class LevelEditorCustomEditor : Editor
         {
             myScript.LoadLevel();
         }
+        
+        if (GUILayout.Button("SaveLevel"))
+        {
+            myScript.SaveLevel();
+        }
+
+
     }
 }

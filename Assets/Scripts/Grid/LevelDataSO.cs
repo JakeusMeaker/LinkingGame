@@ -12,16 +12,11 @@ public class LevelDataSO : ScriptableObject
     public Vector3 offset;
 
     public int levelTargetScore;
-
-    public TileDataSO[,] levelGrid;
+    
+    public List<TileDataSO> levelGrid;
 
     public void SetUpGrid()
     {
-        levelGrid = new TileDataSO[width, height];
-    }
-
-    public void AddToGrid(int x, int y, TileDataSO tile)
-    {
-        levelGrid[x, y] = tile;
+        levelGrid = new List<TileDataSO>();
     }
 }

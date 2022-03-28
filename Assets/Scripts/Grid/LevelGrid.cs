@@ -16,42 +16,39 @@ public class LevelGrid : MonoBehaviour
     [SerializeField] private GameObject tilePrefab;
     Vector3 offset;
 
-    [SerializeField] private LevelDataSO[] levels;
-
     private void Start()
     {
         offset = transform.position;
-        if (levels.Length != 0)
-        {
-            LoadLevelGrid(0);
-        }
-        else
-        {
-            GenerateRandomGrid();
-        }
     }
 
-    private void LoadLevelGrid(int level)
+    public void LoadLevelGrid(LevelDataSO levelData)
     {
-        for (int i = 0; i < levels[level].levelGrid.GetLength(0); i++)
+        levelGrid = new GameObject[levelData.width, levelData.height];
+
+        width = levelData.width;
+        height = levelData.height;
+        tileSize = levelData.tileSize;
+
+        int listIndexRef = 0;
+        
+        for (int i = 0; i < levelData.width; i++)
         {
-            for (int j = 0; j < levels[level].levelGrid.GetLength(1); j++)
+            for (int j = 0; j < levelData.height; j++)
             {
-                GameObject tile = Instantiate(tilePrefab, new Vector3(i, j) * levels[level].tileSize + levels[level].offset, Quaternion.identity, transform);
-                tile.transform.localScale = tile.transform.localScale * levels[level].tileSize;
+                GameObject tile = Instantiate(tilePrefab, new Vector3(i, j) * levelData.tileSize + levelData.offset, Quaternion.identity, transform);
+                tile.transform.localScale = tile.transform.localScale * levelData.tileSize;
                 TileDataHolder spawnedTile = tile.GetComponent<TileDataHolder>();
-                spawnedTile.SetTileData(this, levels[level].levelGrid[i, j], i, j);
+                spawnedTile.SetTileData(this, levelData.levelGrid[listIndexRef], i, j);
                 spawnedTile.OnTileDestroyed += TileDataHolder_OnTileDestroyed;
                 levelGrid[i, j] = tile;
+                if(listIndexRef < levelData.levelGrid.Count) listIndexRef++;
             }
         }
-
-        ScoreManager.Instance.SetScoreTarget(levels[0].levelTargetScore);
-
+        GameManager.Instance.SetScoreTarget(levelData.levelTargetScore);
     }
 
     // Start is called before the first frame update
-    void GenerateRandomGrid()
+    public void GenerateRandomGrid(int levelScore)
     {
         levelGrid = new GameObject[width, height];
 
@@ -67,8 +64,7 @@ public class LevelGrid : MonoBehaviour
                 levelGrid[i, j] = tile;
             }
         }
-
-        ScoreManager.Instance.SetScoreTarget(5000);
+        GameManager.Instance.SetScoreTarget(levelScore);
     }
 
     private void TileDataHolder_OnTileDestroyed(object sender, TileDataHolder.OnTileDestroyedEventArgs e)
