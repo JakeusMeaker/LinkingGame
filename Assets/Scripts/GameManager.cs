@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -10,8 +8,8 @@ public class GameManager : MonoBehaviour
     private int currentScore = 0;
     private int scoreTarget = 0;
 
-    private TMP_Text scoreText;
-    private GameObject winPanel;
+    [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private GameObject winPanel;
 
     private LevelGrid levelGrid;
 
@@ -33,9 +31,8 @@ public class GameManager : MonoBehaviour
             _instance = this;
         }
         #endregion
+
         levelGrid = GetComponent<LevelGrid>();
-        scoreText = GameObject.FindGameObjectWithTag("ScoreText").GetComponent<TMP_Text>();
-        winPanel = GameObject.FindGameObjectWithTag("WinPanel");
         winPanel.SetActive(false);
         currentLevel = 0;
     }
@@ -79,6 +76,8 @@ public class GameManager : MonoBehaviour
 
     public void NextLevel()
     {
+        currentScore = 0;
+
         if (currentLevel < levels.Length)
         {
             currentLevel++;

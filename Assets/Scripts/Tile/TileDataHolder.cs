@@ -143,6 +143,7 @@ public class TileDataHolder : MonoBehaviour
         }
     }
 
+    // Determines the direction of the given tile to this tile
     public ConnectionLines DetermineConnection(TileDataHolder otherTile)
     {
         if (otherTile.xPos == xPos && otherTile.yPos > yPos)

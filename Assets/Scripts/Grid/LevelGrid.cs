@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class LevelGrid : MonoBehaviour
 {
@@ -23,6 +19,8 @@ public class LevelGrid : MonoBehaviour
 
     public void LoadLevelGrid(LevelDataSO levelData)
     {
+        ClearGrid();
+
         levelGrid = new GameObject[levelData.width, levelData.height];
 
         width = levelData.width;
@@ -47,9 +45,10 @@ public class LevelGrid : MonoBehaviour
         GameManager.Instance.SetScoreTarget(levelData.levelTargetScore);
     }
 
-    // Start is called before the first frame update
     public void GenerateRandomGrid(int levelScore)
     {
+        ClearGrid();
+
         levelGrid = new GameObject[width, height];
 
         for (int i = 0; i < levelGrid.GetLength(0); i++)
@@ -78,12 +77,20 @@ public class LevelGrid : MonoBehaviour
                     if (levelGrid[x, y].GetComponent<TileDataHolder>().isEmpty)
                     {
                         levelGrid[x, y].GetComponent<TileDataHolder>().
-                                                                    SetTileData(this, tileDataArray[Random.Range(0, tileDataArray.Length)], x, y);
+                                                           SetTileData(this, tileDataArray[Random.Range(0, tileDataArray.Length)], x, y);
                     }
                 }
 
                 levelGrid[x, y].GetComponent<TileDataHolder>().CheckTileBelow();
             }
+        }
+    }
+
+    public void ClearGrid()
+    {
+        while (transform.childCount > 0)
+        {
+            DestroyImmediate(transform.GetChild(0).gameObject);
         }
     }
 

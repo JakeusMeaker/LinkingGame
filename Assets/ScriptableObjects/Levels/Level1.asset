@@ -16,7 +16,7 @@ MonoBehaviour:
   height: 5
   tileSize: 1
   offset: {x: -2, y: -3.76, z: 0}
-  levelTargetScore: 10000
+  levelTargetScore: 8000
   levelGrid:
   - {fileID: 11400000, guid: b3e35934f7864d746bc924d52e818091, type: 2}
   - {fileID: 11400000, guid: fae74a505fb87d243b9ac6e924c547c4, type: 2}

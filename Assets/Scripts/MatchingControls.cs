@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,9 +8,9 @@ public class MatchingControls : MonoBehaviour
     Stack<TileDataHolder> matchedTiles = new Stack<TileDataHolder>();
     TileDataHolder previousTile;
 
-    // Update is called once per frame
     void Update()
     {
+        #region Mouse Input Handling
         if (Input.GetMouseButton(0))
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -22,7 +21,7 @@ public class MatchingControls : MonoBehaviour
             {
                 AddToMatchedTiles(tile);
             }
-            else 
+            else
             {
                 if (tile == null) return;
 
@@ -32,7 +31,7 @@ public class MatchingControls : MonoBehaviour
                 {
                     RemoveFromMatchedTiles(matchedTiles.Peek());
                 }
-                
+
                 if (TileLinkChecker(previousTile.GetTileData(), tile.GetTileData()))
                 {
                     AddToMatchedTiles(tile);
@@ -42,7 +41,7 @@ public class MatchingControls : MonoBehaviour
                 {
                     return;
                 }
-            }            
+            }
         }
 
         if (Input.GetMouseButtonUp(0))
@@ -82,8 +81,9 @@ public class MatchingControls : MonoBehaviour
                 matchedTiles.Clear();
             }
         }
+        #endregion
 
-
+        #region Touch Input Handling
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -154,15 +154,16 @@ public class MatchingControls : MonoBehaviour
                 }
             }
         }
+        #endregion
     }
 
-    void RemoveFromMatchedTiles(TileDataHolder tile)
+    private void RemoveFromMatchedTiles(TileDataHolder tile)
     {
         tile.DisableAllConnections();
         matchedTiles.Pop();
     }
 
-    void AddToMatchedTiles(TileDataHolder tile)
+    private void AddToMatchedTiles(TileDataHolder tile)
     {
         if (previousTile != null)
         {
@@ -174,7 +175,7 @@ public class MatchingControls : MonoBehaviour
         matchedTiles.Push(tile);
     }
 
-    bool TileLinkChecker(TileDataSO startTile, TileDataSO endTile)
+    private bool TileLinkChecker(TileDataSO startTile, TileDataSO endTile)
     {
         if (startTile == null || endTile == null)
         {
@@ -182,5 +183,5 @@ public class MatchingControls : MonoBehaviour
         }
 
         return startTile.type == endTile.type;
-    }
+    }    
 }
