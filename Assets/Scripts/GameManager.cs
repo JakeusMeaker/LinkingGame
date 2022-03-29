@@ -74,6 +74,12 @@ public class GameManager : MonoBehaviour
         matcher.SetActive(true);
     }
 
+    public void MainMenu()
+    {
+        matcher.SetActive(false);
+        mainMenu.SetActive(true);
+    }
+
     public void NextLevel()
     {
         currentScore = 0;
